@@ -1,6 +1,6 @@
 ---
 name: mail-template-review-request
-description: "Fragmento OPCIONAL para PEDIR UNA RESEÑA en Trustpilot cuando ya se ha resuelto la consulta del cliente y la interacción ha sido positiva. No es una plantilla de tema: es un añadido breve al final de otra respuesta útil. Señales para usarla: el cliente agradece/queda satisfecho o la consulta se ha resuelto con claridad. No usar si hay queja, insatisfacción, handoff, tema legal/fraude o la consulta no ha quedado resuelta."
+description: "Fragmento OPCIONAL para PEDIR UNA RESEÑA en Trustpilot cuando ya se ha resuelto la consulta del cliente y la interacción ha sido positiva. No es una plantilla de tema: es un añadido breve al final de otra respuesta útil. Señales para usarla: el cliente agradece/queda satisfecho o la consulta se ha resuelto con claridad. No usar si hay queja, insatisfacción, tema legal/fraude o la consulta no ha quedado resuelta."
 ---
 ## Pedir reseña (Trustpilot) en RenzoSeguros
 
@@ -19,13 +19,13 @@ La clasificación solo tiene que responder: ¿procede añadir la petición de re
 
 1. Resuelve primero la consulta del cliente con la plantilla de tema que corresponda (facturación, coberturas, cancelación, etc.).
 2. ¿La consulta ha quedado resuelta Y la interacción es positiva (agradecimiento, satisfacción, tono cordial)?
-3. Decide: resuelta y positiva → AÑADE el fragmento al final de la respuesta; cualquier señal negativa (queja, insatisfacción, enfado), handoff, tema legal/fraude, o consulta no resuelta → NO lo añadas.
+3. Decide: resuelta y positiva → AÑADE el fragmento al final de la respuesta; cualquier señal negativa (queja, insatisfacción, enfado), tema legal/fraude, o consulta no resuelta → NO lo añadas.
 4. Si hay duda razonable, NO añadas la reseña (mejor omitir que pedirla en mal momento).
 
 ### Léxico de mapeo
 
 - → PROCEDE: "gracias", "muchas gracias", "perfecto", "me ha quedado claro", "genial", tono satisfecho, consulta simple resuelta.
-- → NO PROCEDE: "reclamación", "queja", "no estoy conforme", enfado, un handoff, tema legal/fraude, o cuando la respuesta deja algo pendiente/por confirmar.
+- → NO PROCEDE: "reclamación", "queja", "no estoy conforme", enfado, tema legal/fraude, o cuando la respuesta deja algo pendiente/por confirmar.
 
 ### Qué SÍ dispara la plantilla
 
@@ -35,7 +35,7 @@ La clasificación solo tiene que responder: ¿procede añadir la petición de re
 ### Qué NO dispara la plantilla (deja que lo gestione otro flujo)
 
 - Cualquier email con queja, insatisfacción o enfado (`mail-template-complaint`).
-- Casos de handoff, legal/autoridad o fraude/seguridad.
+- Casos legales/de autoridad o fraude/seguridad.
 - Respuestas que dejan algo pendiente o sin resolver.
 - Como respuesta única: este fragmento nunca va solo, siempre acompaña a otra respuesta útil.
 
@@ -52,6 +52,3 @@ Si he sido útil, ¿me ayudarías con una reseña positiva aquí?🙏: https://e
 No olvides mencionar mi nombre: NOMBRE
 ```
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.

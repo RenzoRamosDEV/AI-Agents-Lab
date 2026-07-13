@@ -64,6 +64,3 @@ Lo que te demanda el banco es la Carta de Cesión de Derechos, un documento que,
 8. Se guardará en el teléfono u ordenador en función de cómo estés accediendo.
 ```
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.

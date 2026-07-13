@@ -52,6 +52,3 @@ La clasificación solo tiene que responder: ¿el cliente quiere acceder a un pre
 Accediendo a dicho presupuesto vía app o web de RenzoSeguros (www.renzoseguros.com MI CUENTA) podrás acceder al presupuesto, modificar parámetros predefinidos para ajustarlos a tus necesidades, descargar borrador de póliza y condiciones y directamente contratar póliza si lo deseas.
 ```
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.
