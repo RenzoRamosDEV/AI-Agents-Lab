@@ -33,17 +33,9 @@
           <p class="subtitle"><span class="prompt-mark" aria-hidden="true">&gt;</span> Resultados de las suites de evaluación — calidad de respuesta y detección de datos inventados</p>
         </div>
         <div class="seg suite-bar" id="suite-bar" title="Suite de evaluación"></div>
+        <button class="ghost-btn" id="docs-btn">Documentación</button>
       </div>
     </header>
-
-    <a class="card doc-banner" href="docs.html">
-      <span class="doc-banner-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-      <span class="doc-banner-text">
-        <span class="doc-banner-title">Documentación</span>
-        <span class="doc-banner-sub">Cómo funciona el banco de evals, el formato que lee este panel y cómo montar tus propias suites y casos de test.</span>
-      </span>
-      <span class="doc-banner-cta">Ver documentación →</span>
-    </a>
 
     <main class="layout">
       <div class="side-col">
@@ -133,6 +125,14 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <div id="soon-modal" class="soon-modal hidden">
+    <div class="soon-box glass">
+      <div class="soon-title">&gt; abriendo documentación…</div>
+      <div class="soon-big">Próximamente<span class="caret" aria-hidden="true"></span></div>
+      <div class="soon-hint">[ clic en cualquier sitio para cerrar ]</div>
+    </div>
   </div>
 
   <div id="tooltip" class="tooltip hidden"></div>
