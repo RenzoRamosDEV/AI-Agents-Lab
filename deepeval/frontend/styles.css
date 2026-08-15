@@ -646,113 +646,29 @@ details.prompt-details pre { margin-top: 8px; max-height: 420px; overflow-y: aut
 ::-webkit-scrollbar-thumb { background: rgba(150, 200, 188, 0.22); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(94, 226, 176, 0.35); background-clip: content-box; }
 
-/* ---------- Página de documentación ---------- */
+/* ---------- Página "próximamente" (Documentación) ---------- */
 a.ghost-btn { text-decoration: none; border-bottom-width: 1px; }
 a.ghost-btn:hover { color: var(--accent); }
-
-.doc-wrap { max-width: 980px; }
-.doc-card h3 {
-  margin: 20px 0 8px;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.doc-card p, .doc-card li { color: var(--text-secondary); font-size: 13px; }
-.doc-card strong { color: var(--text-primary); }
-.doc-card ul { padding-left: 20px; }
-.doc-card li { margin-bottom: 4px; }
-
-.codeblock {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
-  overflow-x: auto;
-  font-size: 12px;
-  line-height: 1.65;
-  white-space: pre;
-  color: var(--text-secondary);
-  margin: 10px 0;
-}
-.codeblock .hl { color: var(--accent); }
-
-.flow-steps { list-style: none; margin: 12px 0; padding: 0; counter-reset: paso; }
-.flow-steps li {
-  position: relative;
-  padding: 10px 14px 10px 52px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  counter-increment: paso;
-}
-.flow-steps li::before {
-  content: counter(paso, decimal-leading-zero);
-  position: absolute;
-  left: 14px;
-  top: 10px;
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.doc-toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.doc-toc a {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 3px 12px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-.doc-toc a:hover { border-color: var(--border-lit); color: var(--accent); }
-
-.doc-table { border-collapse: collapse; width: 100%; margin: 10px 0; }
-.doc-table th {
-  text-align: left;
-  color: var(--text-muted);
-  font-weight: 500;
-  font-size: 11.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--axis);
-  padding: 6px 10px;
-}
-.doc-table td { padding: 7px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; font-size: 12.5px; color: var(--text-secondary); }
-
-/* ---------- Card horizontal de acceso a la documentación ---------- */
-.doc-banner {
+.soon-page {
+  min-height: 55vh;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
-  transition: border-color 0.15s;
-}
-.doc-banner:hover { border-color: var(--border-lit); color: var(--text-secondary); }
-.doc-banner-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  color: var(--accent);
-  border: 1px solid var(--border-lit);
-  background: var(--accent-dim);
-  box-shadow: 0 0 18px -6px var(--accent-glow);
 }
-.doc-banner-text { display: flex; flex-direction: column; min-width: 0; }
-.doc-banner-title {
-  color: var(--text-primary);
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.08em;
+.soon-box { padding: 34px 46px; text-align: center; border-color: var(--border-lit); }
+.soon-title {
+  font-size: 12px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
 }
-.doc-banner:hover .doc-banner-title { color: var(--accent); }
-.doc-banner-sub { font-size: 12.5px; }
-.doc-banner-cta { margin-left: auto; color: var(--accent); font-size: 12.5px; white-space: nowrap; }
+.soon-big {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+.soon-hint { margin-top: 12px; font-size: 11px; color: var(--text-muted); }
