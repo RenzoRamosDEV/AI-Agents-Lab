@@ -2,12 +2,12 @@
   "prompt_id": "rr-agent_mail_agent_prompt",
   "roles": [],
   "response_schema": {
-    "title": "Response Schema",
+    "title": "Esquema de respuesta",
     "type": "object",
     "properties": {
       "answer": {
         "type": "string",
-        "description": "The customer-facing reply text, in the same language as the inbound email"
+        "description": "El texto de la respuesta de cara al cliente, en el mismo idioma que el email entrante"
       }
     },
     "required": ["answer"]
