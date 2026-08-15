@@ -1,0 +1,15 @@
+{
+  "name": "ai-agents-lab-promptfoo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Evaluación de calidad y corrección de respuestas de agentes de IA con PromptFoo",
+  "scripts": {
+    "postinstall": "node -e \"const fs=require('fs');const p='node_modules/promptfoo/drizzle';if(!fs.existsSync(p))fs.symlinkSync('dist/drizzle',p)\"",
+    "eval": "promptfoo eval",
+    "view": "promptfoo view",
+    "validate": "promptfoo validate"
+  },
+  "devDependencies": {
+    "promptfoo": "0.120.0"
+  }
+}
