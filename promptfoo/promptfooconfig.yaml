@@ -1,0 +1,148 @@
+description: Eval del mail_agent (rr-agent-config-mail)
+
+prompts:
+  - file://prompts/mail_agent_prompt.json
+
+providers:
+  - file://providers/openai.yaml
+
+defaultTest:
+  options:
+    # El modelo devuelve {"answer": "..."}; los asserts evalúan solo el texto de answer
+    transform: "typeof output === 'string' ? JSON.parse(output).answer : output.answer"
+    provider:
+      id: openai:chat:gpt-4.1-mini
+      config:
+        apiKeyEnvar: API_KEY_OPENAI
+  vars:
+    today_datetime: '2026-08-15 12:00'
+    skill_catalog: |
+      - mail-template-billing (v1): Plantilla para emails sobre FACTURACIÓN: dudas de cobros, importes, recibos, métodos de pago, devoluciones. Señales: remitente de finanzas/administración, asunto con 'factura'/'recibo'/'cobro'/'pago'.
+      - mail-template-complaint (v1): Plantilla para emails de QUEJA o INSATISFACCIÓN: reclamaciones, malestar, tono molesto, amenaza de baja. Señales: lenguaje negativo/enfadado, asunto con 'queja'/'reclamación'/'inadmisible'/'cancelar'.
+      - mail-template-generic (v1): Plantilla GENÉRICA de respaldo: úsala cuando el email no encaje claramente en facturación, queja ni consulta comercial. Saludo + acuse + próximo paso neutro.
+      - mail-template-home-coverages (v1): Plantilla INFORMATIVA sobre las COBERTURAS de la póliza de hogar/propietario de RenzoSeguros: qué incluye (básicas y opcionales), qué garantiza cada una, límites y exclusiones conocidas. Señales: preguntas de '¿qué cubre mi seguro?'/'¿está cubierto X?'/'qué incluye la póliza'/menciones de fuego, agua, robo, responsabilidad civil, asistencia/bricolaje, defensa jurídica. No es para MODIFICAR el capital (eso es `mail-template-generic`) ni para tramitar/abrir un siniestro concreto.
+  assert:
+    - type: not-contains
+      value: '\n'
+    - type: llm-rubric
+      value: |
+        Evalúa este borrador de respuesta a un email de un cliente de RenzoSeguros. Debe cumplir TODAS estas reglas:
+        1. Está escrito en el MISMO idioma que el email entrante.
+        2. Tiene estructura de email: saludo, contenido y despedida.
+        3. Habla en primera persona del plural como el equipo de atención al cliente (nosotros).
+        4. NO dice ni insinúa que el caso se deriva a otro equipo, departamento o agente, ni que "un agente te contactará": quien escribe ES el equipo que gestiona el caso.
+        5. NO inventa datos que no estén en el email entrante (importes, fechas, números de factura, precios, condiciones concretas); si falta un dato, dice que se confirmará.
+        6. NO incluye línea de asunto ni metacomentarios (nada de "aquí tienes tu borrador").
+        Si incumple cualquiera de las reglas, suspende e indica cuál.
+
+tests:
+  - description: Facturación — duda sobre un cobro
+    vars:
+      loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-billing.md
+      message: |
+        De: renzoramosivan@gmail.com
+        Asunto: Duda con el recibo de agosto
+
+        Hola, me habéis cobrado 42,50 € en el recibo de este mes y no entiendo por qué ha subido. ¿Me lo podéis explicar? Gracias.
+    assert:
+      - type: icontains-any
+        value:
+          - recibo
+          - factura
+          - cobro
+      - type: llm-rubric
+        value: |
+          La respuesta debe seguir la plantilla de facturación:
+          1. Saludo personalizado al remitente (Renzo).
+          2. Confirma la recepción de la consulta y resume el cobro por el que pregunta (42,50 € del recibo de agosto).
+          3. NO explica el motivo de la subida inventándolo (el email no lo dice): debe indicar que se revisará y confirmará.
+          4. Da un próximo paso explícito (p. ej. "lo revisamos y te confirmamos en 24-48 h").
+          5. Cierre cordial.
+          Suspende si inventa el motivo de la subida, importes o fechas no presentes en el email.
+
+  - description: Queja — cliente enfadado que amenaza con darse de baja
+    vars:
+      loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-complaint.md
+      message: |
+        De: jorge.perez@hotmail.com
+        Asunto: Reclamación — servicio inadmisible
+
+        Llevo tres semanas esperando respuesta sobre mi siniestro y nadie me dice nada. Esto es inadmisible. Si no me contestáis ya, cancelo la póliza.
+    assert:
+      - type: icontains-any
+        value:
+          - lamentamos
+          - sentimos
+          - disculpa
+      - type: llm-rubric
+        value: |
+          La respuesta debe seguir la plantilla de queja/reclamación:
+          1. Empieza con reconocimiento sincero del malestar (empatía primero, tono nunca defensivo).
+          2. Reformula el problema del cliente (tres semanas sin respuesta sobre su siniestro) demostrando que lo ha entendido.
+          3. Asume responsabilidad sin excusas y sin culpar al cliente.
+          4. Indica una acción concreta o vía de resolución (qué se va a hacer).
+          5. Cierre que recupera la confianza.
+          Suspende si minimiza la queja, se excusa culpando a terceros, promete algo inverificable (p. ej. una resolución concreta del siniestro que no puede garantizar) o inventa datos del siniestro.
+
+  - description: Coberturas de hogar — pregunta qué cubre la póliza
+    vars:
+      loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-home-coverages.md
+      message: |
+        De: ana.garcia@gmail.com
+        Asunto: ¿Qué cubre mi seguro de hogar?
+
+        Buenas, tengo una duda: si se me rompe una tubería y hay daños por agua, ¿está cubierto por mi póliza de hogar? ¿Qué más incluye?
+    assert:
+      - type: icontains-all
+        value:
+          - Coberturas Básicas
+          - Daños por agua
+          - Robo Ampliado
+          - Responsabilidad Civil
+          - Asistencia y Bricolaje
+          - Asistencia Jurídica
+          - "2.000"
+          - "3.000"
+      - type: llm-rubric
+        value: |
+          El cliente pregunta por los daños por agua Y qué más incluye su póliza (pregunta general), así que la respuesta debe reproducir la plantilla oficial de coberturas LITERALMENTE (no parafraseada): coberturas básicas (fuego/explosión/humo, fenómenos atmosféricos, daños por agua, robo/atraco/hurto dentro de la vivienda, desalojamiento forzoso o inhabitabilidad, reposición de llaves y cerraduras) y las 4 opcionales (Robo Ampliado con máximo 2.000 € y nunca dinero en efectivo; Responsabilidad Civil; Asistencia y Bricolaje con dos intervenciones/año y tres horas de mano de obra; Asistencia Jurídica con libre elección de profesional hasta 3.000 €).
+          Suspende si: omite coberturas básicas u opcionales, altera los límites (2.000 €/3.000 €, intervenciones, horas), añade coberturas o condiciones que no están en la plantilla, o responde con vaguedades tipo "depende de las condiciones de tu póliza" en lugar del detalle oficial.
+
+  - description: "CANARIO (debe fallar) — el assert exige inventar datos, cosa que el prompt prohíbe"
+    vars:
+      loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-billing.md
+      message: |
+        De: pedro.ruiz@gmail.com
+        Asunto: ¿Por qué ha subido mi recibo?
+
+        Hola, mi recibo ha subido este mes y quiero saber el motivo exacto y el desglose del nuevo importe.
+    assert:
+      - type: llm-rubric
+        value: |
+          La respuesta debe indicar el motivo exacto de la subida del recibo y el desglose numérico
+          del nuevo importe (cifras concretas en euros). Suspende si no da un importe concreto.
+
+  - description: Genérico — email en inglés (debe responder en el mismo idioma)
+    vars:
+      loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-generic.md
+      message: |
+        From: john.smith@example.com
+        Subject: Question about my policy documents
+
+        Hi, could you send me a copy of my policy documents? I can't find them in my email. Thanks!
+    assert:
+      - type: icontains-any
+        value:
+          - thank
+          - regards
+          - hello
+          - hi
+          - dear
+      - type: llm-rubric
+        value: |
+          La respuesta debe seguir la plantilla genérica y estar EN INGLÉS (mismo idioma que el email entrante):
+          1. Saludo personalizado (John).
+          2. Acuse de recibo con resumen en una línea de lo que pide (copia de los documentos de su póliza).
+          3. Como no puede adjuntar los documentos, dice en primera persona del plural que LO ESTAMOS gestionando y que se responde por este mismo hilo.
+          4. Cierre cordial invitando a responder con cualquier duda.
+          Suspende si responde en español, dice que se deriva a otro equipo/departamento o que "un agente te contactará", o afirma haber adjuntado los documentos (no puede adjuntar nada).
