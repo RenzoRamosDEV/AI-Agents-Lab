@@ -10,6 +10,7 @@ defaultTest:
   options:
     # El modelo devuelve {"answer": "..."}; los asserts evalúan solo el texto de answer
     transform: "typeof output === 'string' ? JSON.parse(output).answer : output.answer"
+    # Modelo JUEZ: solo califica los asserts llm-rubric (el evaluado está en providers/)
     provider:
       id: openai:chat:gpt-4.1-mini
       config:
