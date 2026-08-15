@@ -1,0 +1,16 @@
+{
+  "prompt_id": "rr-agent_auto_agent_prompt",
+  "roles": [],
+  "response_schema": {
+    "title": "Esquema de respuesta",
+    "type": "object",
+    "properties": {
+      "answer": {
+        "type": "string",
+        "description": "El texto de la respuesta al cliente, en el mismo idioma que la consulta"
+      }
+    },
+    "required": ["answer"]
+  },
+  "skill_modules": []
+}
