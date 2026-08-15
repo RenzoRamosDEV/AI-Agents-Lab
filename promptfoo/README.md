@@ -25,7 +25,16 @@ Resultado esperado: **4 en verde + 1 en rojo**. El rojo es el test `CANARIO (deb
 
 ## Carpeta `prompts/`
 
-`mail_agent_prompt.json` es el prompt real del agente (el de LangSmith) en formato chat (system + user), con las variables `{{today_datetime}}`, `{{skill_catalog}}` y `{{message}}`. Tiene una sección extra `Loaded template` con `{{loaded_skill}}`: como en el eval no hay herramientas, cada test inyecta ahí la plantilla que el agente real cargaría con `load_skill`.
+Es lo que promptfoo le envía al modelo en cada test. No basta con mandarle el email del cliente: hay que mandarle lo mismo que recibe el agente en producción — sus instrucciones completas y luego el email — porque si no, no estarías evaluando a tu agente sino a un modelo "a pelo".
+
+`mail_agent_prompt.json` son 2 mensajes en formato chat:
+
+1. **`system`**: copia del prompt real del agente (el de LangSmith, `agent/rr-agent-config-mail/prompts/`), con sus reglas y el catálogo de plantillas.
+2. **`user`**: el email entrante.
+
+Los huecos `{{...}}` los rellena promptfoo en cada test con los `vars` del YAML: `{{message}}` (el email del caso), `{{skill_catalog}}` y `{{today_datetime}}` (comunes, en `defaultTest`), y `{{loaded_skill}}` — el único añadido respecto al prompt real: el agente de verdad carga la plantilla con la herramienta `load_skill`, pero en el eval no hay herramientas, así que cada test la inyecta ahí directamente (leída del `.md` real del agente).
+
+⚠️ Es una **copia manual**: si cambias el prompt del agente en LangSmith o en el `.md`, actualiza también este JSON — si divergen, estarás evaluando un prompt que ya no usas.
 
 ## Carpeta `providers/`
 
