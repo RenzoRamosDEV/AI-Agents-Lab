@@ -33,6 +33,15 @@ Define contra qué modelo se evalúa. `promptfooconfig.yaml` referencia uno de e
 
 - `openai.yaml` — el activo: `gpt-5.6-terra` por la API oficial de OpenAI, con el mismo `response_format` (JSON con campo `answer`) que usa el agente real. Key: `API_KEY_OPENAI` en el `.env`.
 
+## Los dos modelos: evaluado y juez
+
+En el eval intervienen dos modelos con papeles distintos:
+
+- **Evaluado** (`gpt-5.6-terra`, en `providers/openai.yaml`): hace de agente de email — recibe el email y redacta la respuesta. Es a quien se examina.
+- **Juez** (`gpt-4.1-mini`, en `defaultTest.options.provider` de la config): solo se usa en los asserts `llm-rubric` — lee la respuesta del evaluado y dictamina si cumple los criterios. Los asserts deterministas (`icontains`, etc.) no usan ningún modelo.
+
+Se usa un modelo pequeño y distinto como juez a propósito: calificar contra una lista de criterios es más fácil que redactar (mini basta), es mucho más barato (el juez se llama en cada rubric de cada test), y un modelo no debe calificarse a sí mismo — tiende a ser indulgente con sus propios textos. Además, al cambiar el modelo evaluado en `providers/`, el juez se queda igual: mismo corrector y mismos criterios para poder comparar modelos entre sí.
+
 ## Cómo se hace un caso de test
 
 Añade un bloque a la lista `tests:` de `promptfooconfig.yaml` con tres partes:
