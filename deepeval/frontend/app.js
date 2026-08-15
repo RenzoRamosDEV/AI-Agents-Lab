@@ -797,9 +797,6 @@ if (params.get("suite")) currentSuite = params.get("suite");
 document.querySelectorAll("#mode-toggle button").forEach((b) => b.classList.toggle("active", b.dataset.mode === chartMode));
 document.querySelectorAll("#view-toggle button").forEach((b) => b.classList.toggle("active", b.dataset.view === chartView));
 
-$("docs-btn").addEventListener("click", () => $("soon-modal").classList.remove("hidden"));
-$("soon-modal").addEventListener("click", () => $("soon-modal").classList.add("hidden"));
-
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);

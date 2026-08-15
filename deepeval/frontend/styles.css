@@ -646,21 +646,16 @@ details.prompt-details pre { margin-top: 8px; max-height: 420px; overflow-y: aut
 ::-webkit-scrollbar-thumb { background: rgba(150, 200, 188, 0.22); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(94, 226, 176, 0.35); background-clip: content-box; }
 
-/* ---------- Modal "próximamente" (botón Documentación) ---------- */
-.soon-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 950;
+/* ---------- Página "próximamente" (Documentación) ---------- */
+a.ghost-btn { text-decoration: none; border-bottom-width: 1px; }
+a.ghost-btn:hover { color: var(--accent); }
+.soon-page {
+  min-height: 55vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(4, 6, 8, 0.6);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  cursor: pointer;
 }
-.soon-modal.hidden { display: none; }
-.soon-box { padding: 28px 38px; text-align: center; border-color: var(--border-lit); }
+.soon-box { padding: 34px 46px; text-align: center; border-color: var(--border-lit); }
 .soon-title {
   font-size: 12px;
   letter-spacing: 0.12em;
