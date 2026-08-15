@@ -8,3 +8,12 @@
 
 # Dependencias
 node_modules/
+
+# Generado por el eval de DeepEval
+deepeval/out/
+deepeval/.deepeval/
+
+# Generado por el eval de promptfoo
+promptfoo/out/
+__pycache__/
+.pytest_cache/
