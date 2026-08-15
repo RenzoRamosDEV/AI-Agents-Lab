@@ -79,6 +79,3 @@ A través de la WEB
 - "Quiero cancelar mi seguro de Mapfre ahora que estoy con vosotros" → `mail-template-renewal-opposition` (o `mail-template-article-22` si quedan menos de 30 días).
 - "Como no me lo arregléis me doy de baja" → amenaza dentro de una queja: `mail-template-complaint`.
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.

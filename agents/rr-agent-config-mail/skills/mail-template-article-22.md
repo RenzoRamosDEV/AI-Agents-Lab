@@ -60,6 +60,3 @@ Sin embargo, nos gustaría hacerte algunas preguntas a ver si pudieses pelearlo:
 - "Mi antiguo seguro vence dentro de tres meses, ¿cómo lo doy de baja?" → dentro de plazo: `mail-template-renewal-opposition`.
 - "Quiero cancelar ya mi póliza de RenzoSeguros" → `mail-template-policy-cancellation`.
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.

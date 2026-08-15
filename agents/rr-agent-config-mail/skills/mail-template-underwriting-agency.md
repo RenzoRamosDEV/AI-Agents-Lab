@@ -52,6 +52,3 @@ La clasificación solo tiene que responder: ¿el cliente pregunta quién respald
 Respecto a tus dudas, te puedo confirmar que RenzoSeguros actúa como agencia de suscripción y, como tal, suscribe riesgos por cuenta y en nombre de una aseguradora. La entidad aseguradora que respalda las pólizas de RenzoSeguros es IptiQ EMEA P&C S.A, Sucursal en España, que está registrada en el Gran Ducado de Luxemburgo y autorizada para operar en España. Puedes confiar en que una compañía reconocida y de amplia solvencia está detrás de tus seguros.
 ```
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.

@@ -64,6 +64,3 @@ Accediendo vía app o web de RenzoSeguros (en www.renzoseguros.com > MI CUENTA) 
 Cualquier modificación implica recálculo de la cuota resultante. Si tu póliza ya estuviera contratada, para que este cambio se haga efectivo tienes que aceptar la nueva cuota resultante.
 ```
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.

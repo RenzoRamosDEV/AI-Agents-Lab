@@ -52,6 +52,3 @@ La clasificación solo tiene que responder: ¿el cliente quiere asegurar/incluir
 Para incluir placas solares seria necesario aumentar el Continente estimado a razón del valor de estas placas solares y, una vez contratado, indicar al mail placas_solares@renzoseguros.com que el aumento de este Continente es debido a querer cubrir estas. Adicionalmente tendrás que aportar la factura de las placas solares donde se indique su valor
 ```
 
-## Handoff a un agente humano
-
-Este canal opera SIEMPRE en modo handoff: TODO email entrante se deriva a un agente humano, sin excepción. Marca `handoff` como true y no redactes ninguna respuesta para el cliente — deja `answer` vacío. Redacta igualmente el borrador de apoyo interno con la estructura normal de arriba y ponlo en `suggested_answer` (mismo idioma del email), según el formato de salida del prompt, para que el agente humano lo use como base.
