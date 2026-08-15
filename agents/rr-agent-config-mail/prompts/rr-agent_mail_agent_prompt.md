@@ -1,8 +1,6 @@
 # rr-agent_mail_reply_agent_prompt
 
 > **LangSmith ID:** `rr-agent_mail_reply_agent_prompt`
-> **Service:** `BaseAgentWorkflow` -> `mail_reply_agent`
-> **Instance:** `mail` (PoC)
 > **Variables:** `{today_datetime}`, `{skill_catalog}`
 
 ---
