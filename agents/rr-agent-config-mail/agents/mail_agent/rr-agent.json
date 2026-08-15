@@ -1,0 +1,17 @@
+{
+  "prompt_id": "rr-agent_mail_agent_prompt",
+  "roles": [],
+  "response_schema": {
+    "title": "Response Schema",
+    "type": "object",
+    "properties": {
+      "answer": {
+        "type": "string",
+        "description": "The customer-facing reply text, in the same language as the inbound email"
+      }
+    },
+    "required": ["answer"]
+  },
+  "skill_modules": []
+}
+
