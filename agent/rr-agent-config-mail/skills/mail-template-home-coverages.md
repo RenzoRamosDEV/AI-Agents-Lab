@@ -1,6 +1,6 @@
 ---
 name: mail-template-home-coverages
-description: "Plantilla INFORMATIVA sobre las COBERTURAS de la póliza de hogar/propietario de RenzoSeguros: qué incluye (básicas y opcionales), qué garantiza cada una, límites y exclusiones conocidas. Señales: preguntas de '¿qué cubre mi seguro?'/'¿está cubierto X?'/'qué incluye la póliza'/menciones de fuego, agua, robo, responsabilidad civil, asistencia/bricolaje, defensa jurídica. No es para MODIFICAR el capital (eso es `mail-template-coverage-changes`) ni para tramitar/abrir un siniestro concreto."
+description: "Plantilla INFORMATIVA sobre las COBERTURAS de la póliza de hogar/propietario de RenzoSeguros: qué incluye (básicas y opcionales), qué garantiza cada una, límites y exclusiones conocidas. Señales: preguntas de '¿qué cubre mi seguro?'/'¿está cubierto X?'/'qué incluye la póliza'/menciones de fuego, agua, robo, responsabilidad civil, asistencia/bricolaje, defensa jurídica. No es para MODIFICAR el capital (eso es `mail-template-generic`) ni para tramitar/abrir un siniestro concreto."
 ---
 ## Coberturas de la póliza de hogar en RenzoSeguros
 
@@ -20,7 +20,7 @@ La clasificación solo tiene que responder: ¿el cliente pregunta qué cubre su 
 
 1. Lee el correo completo (asunto + cuerpo); céntrate en la intención, no solo en si aparecen palabras concretas.
 2. ¿Es una consulta informativa sobre qué cubre la póliza (general o de una cobertura concreta)?
-3. Decide: pregunta qué cubre → APLICA, responde con la(s) cobertura(s) relevante(s) de la plantilla; quiere MODIFICAR capital → NO APLICA (`mail-template-coverage-changes`); tiene un siniestro en curso o pide abrir/tramitar uno → NO APLICA, deja que lo gestione el flujo de siniestros (no inventes una respuesta).
+3. Decide: pregunta qué cubre → APLICA, responde con la(s) cobertura(s) relevante(s) de la plantilla; quiere MODIFICAR capital → NO APLICA (`mail-template-generic`); tiene un siniestro en curso o pide abrir/tramitar uno → NO APLICA, deja que lo gestione el flujo de siniestros (no inventes una respuesta).
 4. Si hay duda razonable entre "aplica" y "no aplica", mira los "Ejemplos y casos límite" y, si sigue sin estar claro, marca `aplica: false` con `motivo: "ambiguo, requiere revisión"`.
 
 ### Léxico de mapeo
@@ -38,7 +38,7 @@ La clasificación solo tiene que responder: ¿el cliente pregunta qué cubre su 
 
 ### Qué NO dispara la plantilla (deja que lo gestione otro flujo)
 
-- MODIFICAR el capital asegurado de continente/contenido (eso es `mail-template-coverage-changes`).
+- MODIFICAR el capital asegurado de continente/contenido (eso es `mail-template-generic`).
 - Un siniestro en curso o petición de abrir/tramitar un parte ("se me ha inundado el salón, ¿cómo lo reclamo?") → flujo de siniestros.
 - Dudas de precio/presupuesto de un cliente potencial (eso es interés comercial).
 - Cambios de datos, pago, cancelación u otras gestiones no informativas.

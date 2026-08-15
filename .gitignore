@@ -1,0 +1,10 @@
+# Secretos — nunca commitear
+.venv
+.env
+.config.py
+
+# IDE
+.idea/
+
+# Dependencias
+node_modules/
