@@ -1,5 +1,7 @@
-"""Config de pytest/deepeval: expone la clave del .env raíz como OPENAI_API_KEY,
-que es la variable que DeepEval usa por defecto para el modelo juez."""
+# Config de pytest/deepeval: carga el .env de la raíz y expone API_KEY_OPENAI
+# como OPENAI_API_KEY, la variable que DeepEval espera para el modelo juez.
+# Al estar en la raíz de la carpeta, pytest lo carga siempre y de paso hace
+# importables core/ y suites/ desde los tests.
 
 import os
 from pathlib import Path
