@@ -10,7 +10,17 @@ evaluado, solo al juez.
 ## Cómo lanzarlo
 
 Necesita `API_KEY_OPENAI` en el `.env` de la raíz (misma convención que las
-otras suites) y las dependencias del `pyproject.toml` (`uv sync`):
+otras suites) y las dependencias del `pyproject.toml` (`uv sync`).
+
+Desde cualquier sitio del repo:
+
+```bash
+script/ragas/run_ragas.sh            # corre el eval (usa la caché de respuestas)
+script/ragas/run_ragas.sh --fresh    # regenera las respuestas del agente antes de evaluar
+script/ragas/clean_ragas.sh          # borra lo generado (out/ y __pycache__)
+```
+
+A mano, desde **esta carpeta**:
 
 ```bash
 cd ragas
