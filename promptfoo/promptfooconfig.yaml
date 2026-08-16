@@ -1,11 +1,5 @@
 description: Eval del mail_agent (rr-agent-config-mail)
 
-# Estructura de este fichero (cómo lanzarlo y cómo añadir casos: ver README.md):
-#   prompts:     lo que se envía al modelo en cada test (mensajes chat)
-#   providers:   el modelo EVALUADO, el que hace de agente de email
-#   defaultTest: lo común a todos los tests (transform, modelo juez, vars y asserts globales)
-#   tests:       los casos concretos (email entrante + plantilla esperada + asserts propios)
-
 prompts:
   - file://prompts/mail_agent_prompt.json
 
