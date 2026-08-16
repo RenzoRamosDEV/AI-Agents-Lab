@@ -1,3 +1,8 @@
+# El test de la suite mail_agent (deepeval test run es pytest por debajo).
+# Cada caso pasa por 4 capas, de la más barata a la más cara:
+#   1. checks de texto (sin LLM, gratis)      3. GEval reglas-globales (juez)
+#   2. Faithfulness (detector alucinaciones)  4. GEval rubric-<caso> (juez)
+
 import deepeval
 import pytest
 from deepeval import assert_test
@@ -14,11 +19,15 @@ from suites.mail_agent.agent import (
 from suites.mail_agent.cases import CASES, GLOBAL_RUBRIC_STEPS
 
 SUITE = "mail_agent"
+# Modelo JUEZ: pequeño y distinto del evaluado a propósito — calificar es más
+# fácil que redactar, es barato, y un modelo no debe calificarse a sí mismo
 JUDGE_MODEL = "gpt-4.1-mini"
 
+# Respuestas del agente: salen de la caché out/responses/ (si no existe, se generan)
 RESPONSES = load_or_generate(SUITE)
 
 
+# Se registran en cada run del historial para que cada entrada sea autoexplicativa
 @deepeval.log_hyperparameters
 def hyperparameters():
     return {
@@ -34,7 +43,10 @@ def hyperparameters():
 
 def make_metrics(case: dict) -> list:
     return [
+        # Detector de alucinaciones: descompone la respuesta en afirmaciones y
+        # contrasta cada una contra el retrieval_context (plantilla + email)
         FaithfulnessMetric(model=JUDGE_MODEL, threshold=0.5),
+        # El juez valida las reglas transversales del prompt (comunes a todos los casos)
         GEval(
             name="reglas-globales",
             evaluation_steps=GLOBAL_RUBRIC_STEPS,
@@ -46,6 +58,7 @@ def make_metrics(case: dict) -> list:
             model=JUDGE_MODEL,
             threshold=0.5,
         ),
+        # El juez valida el rubric específico del escenario
         GEval(
             name=f"rubric-{case['id']}",
             criteria=case["rubric"],
@@ -60,6 +73,8 @@ def make_metrics(case: dict) -> list:
     ]
 
 
+# Un test por caso; los canarios van como xfail(strict): fallar es lo esperado
+# y si "pasan" pytest los marca como error XPASS (ver README)
 @pytest.mark.parametrize(
     "case",
     [
@@ -80,6 +95,7 @@ def test_mail_agent(case: dict):
     answer = RESPONSES[case["id"]]
     loaded_skill = case["skill_file"].read_text(encoding="utf-8")
 
+    # Capa 1 — checks deterministas (sin LLM): \n literal prohibido + términos obligatorios
     assert "\\n" not in answer, 'La respuesta contiene la secuencia literal "\\n"'
     lower = answer.lower()
     for term in case.get("contains_all", []):
@@ -89,6 +105,8 @@ def test_mail_agent(case: dict):
             f"No contiene ninguno de: {case['contains_any']}"
         )
 
+    # Capas 2-4 — métricas con juez; retrieval_context = la "verdad" contra la
+    # que Faithfulness contrasta (lo que sale de la plantilla no cuenta como inventado)
     test_case = LLMTestCase(
         input=case["message"],
         actual_output=answer,
