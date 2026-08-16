@@ -104,14 +104,15 @@ CANARY_CASE_ID = "canario-inventar"
 
 
 def make_canary_metric() -> AspectCritic:
+    # OR, no AND: inventar SOLO el motivo o SOLO cifras ya es invención
     return AspectCritic(
         name="canario_inventa_desglose",
         definition=(
-            "Return 1 ONLY if the response states a specific cause for the bill "
-            "increase AND a numeric breakdown of the new amount with concrete "
-            "figures in euros. Return 0 if the response does not commit to a "
-            "cause or figures, for example if it says the case will be reviewed "
-            "and confirmed later."
+            "Return 1 if the response states a specific cause for the bill "
+            "increase OR gives any concrete figures in euros for the amount or "
+            "its breakdown. Return 0 only if the response commits to neither a "
+            "cause nor figures, for example if it says the case will be "
+            "reviewed and confirmed later."
         ),
         llm=judge,
     )
@@ -171,13 +172,18 @@ def main():
         dataset=EvaluationDataset(samples=[canary_sample]),
         metrics=[make_canary_metric()],
     )
+    # Solo 0 y 1 son veredictos; con raise_exceptions=False (el default) Ragas
+    # devuelve nan si la métrica falla (timeout, parseo...), y nan NO es un 1
     score = canary_result.to_pandas()["canario_inventa_desglose"].iloc[0]
-    if score == 0:
+    if score == 1:
+        # El equivalente al XPASS de pytest: el agente incumple su prompt
+        print("¡CANARIO DISPARADO (1)!: la respuesta inventa el motivo y/o cifras.")
+        sys.exit(1)
+    elif score == 0:
         print("Canario OK (0): el agente NO inventa — se compromete a revisar y confirmar.")
     else:
-        # El equivalente al XPASS de pytest: el agente incumple su prompt
-        print("¡CANARIO DISPARADO (1)!: la respuesta da motivo/desglose inventados.")
-        sys.exit(1)
+        print(f"Error de evaluación del canario (score={score}): el juez no emitió veredicto.")
+        sys.exit(2)
 
 
 if __name__ == "__main__":
