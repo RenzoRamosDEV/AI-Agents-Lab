@@ -6,10 +6,13 @@
 - id: openai:chat:gpt-5.6-terra
   label: gpt-5.6-terra
   config:
+    # Nombre de la variable del .env de la raíz con la API key (no es la key en sí)
     apiKeyEnvar: API_KEY_OPENAI
+    # Tope de tokens de la respuesta, holgado para que ningún borrador salga cortado
     max_completion_tokens: 4096
     temperature: 1
-    # Esquema que nos regresa nuestro Agente
+    # Salida estructurada: el mismo esquema JSON ({"answer": "..."}) que devuelve
+    # el agente real. El transform de promptfooconfig.yaml extrae answer antes de evaluar.
     response_format:
       type: json_schema
       json_schema:

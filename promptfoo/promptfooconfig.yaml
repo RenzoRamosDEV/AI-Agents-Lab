@@ -1,11 +1,25 @@
 description: Eval del mail_agent (rr-agent-config-mail)
 
+# Estructura de este fichero (cómo lanzarlo y cómo añadir casos: ver README.md):
+#   prompts:     lo que se envía al modelo en cada test (mensajes chat con huecos {{...}})
+#   providers:   el modelo EVALUADO, el que hace de agente de email
+#   defaultTest: lo común a todos los tests (transform, modelo juez, vars y asserts globales)
+#   tests:       los casos concretos (email entrante + plantilla esperada + asserts propios)
+
+# Prompt del agente: system (copia del prompt real de LangSmith) + user (el email).
+# Los huecos {{...}} se rellenan con las vars de cada test.
 prompts:
   - file://prompts/mail_agent_prompt.json
 
 providers:
   - file://providers/openai.yaml
 
+# Cada eval vuelca además sus resultados a este JSON (out/ está en el .gitignore),
+# por si se quieren inspeccionar sin levantar la UI.
+outputPath: out/latest.json
+
+# Todo lo de defaultTest se hereda en CADA test: sus vars y sus asserts se suman
+# a los que el test declare.
 defaultTest:
   options:
     # El modelo devuelve {"answer": "..."}; los asserts evalúan solo el texto de answer
@@ -15,6 +29,8 @@ defaultTest:
       id: openai:chat:gpt-4.1-mini
       config:
         apiKeyEnvar: API_KEY_OPENAI
+  # Vars comunes a todos los tests: rellenan los huecos {{...}} del prompt.
+  # Cada test aporta las suyas: {{message}} (el email) y {{loaded_skill}} (la plantilla).
   vars:
     today_datetime: '2026-08-15 12:00'
     skill_catalog: |
@@ -22,9 +38,13 @@ defaultTest:
       - mail-template-complaint (v1): Plantilla para emails de QUEJA o INSATISFACCIÓN: reclamaciones, malestar, tono molesto, amenaza de baja. Señales: lenguaje negativo/enfadado, asunto con 'queja'/'reclamación'/'inadmisible'/'cancelar'.
       - mail-template-generic (v1): Plantilla GENÉRICA de respaldo: úsala cuando el email no encaje claramente en facturación, queja ni consulta comercial. Saludo + acuse + próximo paso neutro.
       - mail-template-home-coverages (v1): Plantilla INFORMATIVA sobre las COBERTURAS de la póliza de hogar/propietario de RenzoSeguros: qué incluye (básicas y opcionales), qué garantiza cada una, límites y exclusiones conocidas. Señales: preguntas de '¿qué cubre mi seguro?'/'¿está cubierto X?'/'qué incluye la póliza'/menciones de fuego, agua, robo, responsabilidad civil, asistencia/bricolaje, defensa jurídica. No es para MODIFICAR el capital (eso es `mail-template-generic`) ni para tramitar/abrir un siniestro concreto.
+  # Asserts globales: se comprueban en TODOS los tests, además de los de cada caso.
   assert:
+    # Prohibida la secuencia literal \n (dos caracteres, backslash + n) en el texto;
+    # los saltos de línea reales sí están permitidos (y son obligatorios entre párrafos).
     - type: not-contains
       value: '\n'
+    # Reglas transversales del agente, juzgadas por el modelo juez (gpt-4.1-mini).
     - type: llm-rubric
       value: |
         Evalúa este borrador de respuesta a un email de un cliente de RenzoSeguros. Debe cumplir TODAS estas reglas:
@@ -36,6 +56,12 @@ defaultTest:
         6. NO incluye línea de asunto ni metacomentarios (nada de "aquí tienes tu borrador").
         Si incumple cualquiera de las reglas, suspende e indica cuál.
 
+# Los casos de test. Anatomía de cada uno:
+#   description:  nombre corto que se ve en la UI
+#   vars:         loaded_skill (la plantilla .md real que el agente debería usar)
+#                 y message (el email entrante, con remitente y asunto)
+#   assert:       comprobaciones propias del caso — deterministas (icontains-*)
+#                 y/o de juez (llm-rubric)
 tests:
   - description: Facturación — duda sobre un cobro
     vars:
@@ -109,6 +135,8 @@ tests:
           El cliente pregunta por los daños por agua Y qué más incluye su póliza (pregunta general), así que la respuesta debe reproducir la plantilla oficial de coberturas LITERALMENTE (no parafraseada): coberturas básicas (fuego/explosión/humo, fenómenos atmosféricos, daños por agua, robo/atraco/hurto dentro de la vivienda, desalojamiento forzoso o inhabitabilidad, reposición de llaves y cerraduras) y las 4 opcionales (Robo Ampliado con máximo 2.000 € y nunca dinero en efectivo; Responsabilidad Civil; Asistencia y Bricolaje con dos intervenciones/año y tres horas de mano de obra; Asistencia Jurídica con libre elección de profesional hasta 3.000 €).
           Suspende si: omite coberturas básicas u opcionales, altera los límites (2.000 €/3.000 €, intervenciones, horas), añade coberturas o condiciones que no están en la plantilla, o responde con vaguedades tipo "depende de las condiciones de tu póliza" en lugar del detalle oficial.
 
+  # Canario: su assert exige algo que el prompt PROHÍBE (inventar cifras), así que
+  # rojo = el modelo se comporta bien. Si sale verde, el modelo inventa datos: investígalo.
   - description: "CANARIO (debe fallar) — el assert exige inventar datos, cosa que el prompt prohíbe"
     vars:
       loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-billing.md

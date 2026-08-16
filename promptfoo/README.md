@@ -4,10 +4,10 @@ Suite de evaluación del agente de email (`agent/rr-agent-config-mail`): lanza l
 
 ## Levantar promptfoo y su UI
 
-promptfoo exige Node ≥ 22 y las API keys se leen del `.env` de la raíz del repo:
+promptfoo exige Node ≥ 22 (fijado en el `.nvmrc` de esta carpeta) y las API keys se leen del `.env` de la raíz del repo:
 
 ```bash
-nvm use 22
+nvm use               # lee la versión del .nvmrc
 npx promptfoo view    # levanta la UI de resultados en http://localhost:15500
 ```
 
@@ -22,6 +22,8 @@ npx promptfoo eval --env-file ../.env
 ```
 
 Resultado esperado: **4 en verde + 1 en rojo**. El rojo es el test `CANARIO (debe fallar)`: exige algo que el agente tiene prohibido (inventar el desglose de un recibo), así que rojo = el modelo se comporta bien. Si algún día sale en verde, el modelo está inventando datos — problema real. No lo "arregles".
+
+Además de en la UI, cada eval deja sus resultados completos en `out/latest.json` (lo escribe el `outputPath` de la config; la carpeta `out/` está gitignoreada).
 
 ## Carpeta `prompts/`
 
