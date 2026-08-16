@@ -1,18 +1,12 @@
-# Modelo EVALUADO: hace de agente de email y redacta las respuestas.
-# Todo lo listado aquí se evalúa (una columna por modelo en los resultados).
-# El modelo JUEZ de los asserts llm-rubric NO va aquí: se define en
-# promptfooconfig.yaml -> defaultTest.options.provider (gpt-4.1-mini).
-
+# Este sera el modelo evaluador
 - id: openai:chat:gpt-5.6-terra
   label: gpt-5.6-terra
   config:
-    # Nombre de la variable del .env de la raíz con la API key (no es la key en sí)
     apiKeyEnvar: API_KEY_OPENAI
     # Tope de tokens de la respuesta, holgado para que ningún borrador salga cortado
     max_completion_tokens: 4096
     temperature: 1
-    # Salida estructurada: el mismo esquema JSON ({"answer": "..."}) que devuelve
-    # el agente real. El transform de promptfooconfig.yaml extrae answer antes de evaluar.
+    # Este es el formato que entrega mi agente (Puede ser distinto en otro caso)
     response_format:
       type: json_schema
       json_schema:
