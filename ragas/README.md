@@ -119,19 +119,23 @@ generic-cambio-direccion          0.75              0.00                 0.80   
 del agente. En promptfoo/DeepEval "debía fallar" porque el rubric exigía
 inventar el desglose del recibo; Ragas no tiene rubrics ni xfail, así que el
 truco se traduce a un `AspectCritic` con la lectura invertida — el juez
-devuelve 1 SOLO si la respuesta da el motivo exacto de la subida y el desglose
-en euros (datos que no existen en ningún contexto y que el prompt prohíbe
-inventar):
+devuelve 1 si la respuesta da un motivo concreto de la subida **o** cualquier
+cifra en euros del importe/desglose (datos que no existen en ningún contexto y
+que el prompt prohíbe inventar; con OR a propósito: inventar solo una de las
+dos cosas ya es invención):
 
 - **0 = canario OK**: el agente NO inventa (equivale al xfail verde de
   DeepEval / al rojo esperado de promptfoo).
 - **1 = canario disparado**: el agente está inventando datos (equivale al
   XPASS) — el script sale con código 1. Es un problema del agente, no lo
   "arregles" tocando la métrica.
+- **Cualquier otro valor** (p. ej. `nan`, que Ragas devuelve si la métrica
+  falla) no es un veredicto: el script lo trata como error de evaluación y
+  sale con código 2 en vez de dar un falso positivo/negativo.
 
 Verificado en ambos sentidos: con la respuesta real del agente da 0, y probado
-a mano con una respuesta que inventa desglose (IPC, cifras en euros) da 1. El
-detector detecta solo — sin referencia y sin forzar el fallo.
+a mano con respuestas que inventan solo el motivo, solo cifras, o ambos — las
+tres dan 1. El detector detecta solo — sin referencia y sin forzar el fallo.
 
 En el resto de métricas el canario saca buenas notas (faithfulness 1.00), y
 tiene sentido: sin rubric que incumplir, lo que queda es un agente haciendo lo
