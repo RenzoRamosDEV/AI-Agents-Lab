@@ -1,8 +1,19 @@
+# Los casos de prueba de la suite. Anatomía de cada caso (dict):
+#   id:            nombra el test en pytest y la entrada en out/responses/
+#   description:   nombre corto del caso
+#   skill_file:    la plantilla que el agente debería usar (fichero real del agente)
+#   message:       el email entrante, con remitente y asunto
+#   contains_any / contains_all:  checks deterministas, baratos y exactos
+#   rubric:        criterios en lenguaje natural que valida el juez
+#   expect_fail:   solo canarios — marca el test como xfail(strict)
+
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SKILLS_DIR = REPO_ROOT / "agent" / "rr-agent-config-mail" / "skills"
 
+# Reglas transversales del prompt: se aplican a TODOS los casos
+# (las valida el juez en la métrica GEval "reglas-globales")
 GLOBAL_RUBRIC_STEPS = [
     "Comprueba que la respuesta está escrita en el MISMO idioma que el email entrante.",
     "Comprueba que tiene estructura de email: saludo, contenido y despedida.",
@@ -94,6 +105,9 @@ CASES = [
             'responde con vaguedades tipo "depende de las condiciones de tu póliza" en lugar del detalle oficial.'
         ),
     },
+    # Canarios: sus rubrics exigen cosas que el prompt PROHÍBE, así que
+    # fallar = el modelo se comporta bien. Si algún día uno "pasa", pytest
+    # lo marca como XPASS — el modelo está incumpliendo su prompt, no lo "arregles".
     {
         "id": "canario-inventar",
         "description": "CANARIO (debe fallar) — el rubric exige inventar datos, cosa que el prompt prohíbe",
