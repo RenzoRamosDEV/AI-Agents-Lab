@@ -1,36 +1,31 @@
 description: Eval del mail_agent (rr-agent-config-mail)
 
 # Estructura de este fichero (cómo lanzarlo y cómo añadir casos: ver README.md):
-#   prompts:     lo que se envía al modelo en cada test (mensajes chat con huecos {{...}})
+#   prompts:     lo que se envía al modelo en cada test (mensajes chat)
 #   providers:   el modelo EVALUADO, el que hace de agente de email
 #   defaultTest: lo común a todos los tests (transform, modelo juez, vars y asserts globales)
 #   tests:       los casos concretos (email entrante + plantilla esperada + asserts propios)
 
-# Prompt del agente: system (copia del prompt real de LangSmith) + user (el email).
-# Los huecos {{...}} se rellenan con las vars de cada test.
 prompts:
   - file://prompts/mail_agent_prompt.json
 
 providers:
   - file://providers/openai.yaml
 
-# Cada eval vuelca además sus resultados a este JSON (out/ está en el .gitignore),
-# por si se quieren inspeccionar sin levantar la UI.
+# Cada eval vuelca ademas sus resultados a este JSON (Opcional - Ya que se puede ver desde la UI)
 outputPath: out/latest.json
 
-# Todo lo de defaultTest se hereda en CADA test: sus vars y sus asserts se suman
-# a los que el test declare.
+# Este es una Test General, este test pasara por todos los casos que tengamos definidos
 defaultTest:
   options:
-    # El modelo devuelve {"answer": "..."}; los asserts evalúan solo el texto de answer
+    # El transform es especifico en mi caso ya que mi Agente tiene un formato de respuesta personalizado - en mi casos solo pillara "ANSWER"
     transform: "typeof output === 'string' ? JSON.parse(output).answer : output.answer"
-    # Modelo JUEZ: solo califica los asserts llm-rubric (el evaluado está en providers/)
+    # El provider aqui determinamos el modelo de usaremos para el Juez (El juez es que el que revisa si se cumplen los requisitos)
     provider:
       id: openai:chat:gpt-4.1-mini
       config:
         apiKeyEnvar: API_KEY_OPENAI
-  # Vars comunes a todos los tests: rellenan los huecos {{...}} del prompt.
-  # Cada test aporta las suyas: {{message}} (el email) y {{loaded_skill}} (la plantilla).
+  # Variables que necesitan mis Agentes (Ya que en mis aegentes de declaran como variables)
   vars:
     today_datetime: '2026-08-15 12:00'
     skill_catalog: |
@@ -44,7 +39,7 @@ defaultTest:
     # los saltos de línea reales sí están permitidos (y son obligatorios entre párrafos).
     - type: not-contains
       value: '\n'
-    # Reglas transversales del agente, juzgadas por el modelo juez (gpt-4.1-mini).
+    # Reglas generales que debe cumplir
     - type: llm-rubric
       value: |
         Evalúa este borrador de respuesta a un email de un cliente de RenzoSeguros. Debe cumplir TODAS estas reglas:
@@ -56,13 +51,9 @@ defaultTest:
         6. NO incluye línea de asunto ni metacomentarios (nada de "aquí tienes tu borrador").
         Si incumple cualquiera de las reglas, suspende e indica cuál.
 
-# Los casos de test. Anatomía de cada uno:
-#   description:  nombre corto que se ve en la UI
-#   vars:         loaded_skill (la plantilla .md real que el agente debería usar)
-#                 y message (el email entrante, con remitente y asunto)
-#   assert:       comprobaciones propias del caso — deterministas (icontains-*)
-#                 y/o de juez (llm-rubric)
+
 tests:
+  # Caso 1
   - description: Facturación — duda sobre un cobro
     vars:
       loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-billing.md
@@ -87,6 +78,7 @@ tests:
           5. Cierre cordial.
           Suspende si inventa el motivo de la subida, importes o fechas no presentes en el email.
 
+  # Caso 2
   - description: Queja — cliente enfadado que amenaza con darse de baja
     vars:
       loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-complaint.md
@@ -111,6 +103,7 @@ tests:
           5. Cierre que recupera la confianza.
           Suspende si minimiza la queja, se excusa culpando a terceros, promete algo inverificable (p. ej. una resolución concreta del siniestro que no puede garantizar) o inventa datos del siniestro.
 
+  # Caso 3
   - description: Coberturas de hogar — pregunta qué cubre la póliza
     vars:
       loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-home-coverages.md
@@ -135,9 +128,8 @@ tests:
           El cliente pregunta por los daños por agua Y qué más incluye su póliza (pregunta general), así que la respuesta debe reproducir la plantilla oficial de coberturas LITERALMENTE (no parafraseada): coberturas básicas (fuego/explosión/humo, fenómenos atmosféricos, daños por agua, robo/atraco/hurto dentro de la vivienda, desalojamiento forzoso o inhabitabilidad, reposición de llaves y cerraduras) y las 4 opcionales (Robo Ampliado con máximo 2.000 € y nunca dinero en efectivo; Responsabilidad Civil; Asistencia y Bricolaje con dos intervenciones/año y tres horas de mano de obra; Asistencia Jurídica con libre elección de profesional hasta 3.000 €).
           Suspende si: omite coberturas básicas u opcionales, altera los límites (2.000 €/3.000 €, intervenciones, horas), añade coberturas o condiciones que no están en la plantilla, o responde con vaguedades tipo "depende de las condiciones de tu póliza" en lugar del detalle oficial.
 
-  # Canario: su assert exige algo que el prompt PROHÍBE (inventar cifras), así que
-  # rojo = el modelo se comporta bien. Si sale verde, el modelo inventa datos: investígalo.
-  - description: "CANARIO (debe fallar) — el assert exige inventar datos, cosa que el prompt prohíbe"
+  # Caso 4 - Este caso debe fallar
+  - description: Canario - Usuario nos hae la pregunta
     vars:
       loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-billing.md
       message: |
@@ -151,6 +143,7 @@ tests:
           La respuesta debe indicar el motivo exacto de la subida del recibo y el desglose numérico
           del nuevo importe (cifras concretas en euros). Suspende si no da un importe concreto.
 
+  # Caso 5
   - description: Genérico — email en inglés (debe responder en el mismo idioma)
     vars:
       loaded_skill: file://../agent/rr-agent-config-mail/skills/mail-template-generic.md
