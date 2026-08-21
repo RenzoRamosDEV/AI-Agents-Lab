@@ -16,7 +16,5 @@ deepeval/.deepeval/
 # Generado por el eval de promptfoo
 promptfoo/out/
 
-# Generado por el eval de Ragas
-ragas/out/
 __pycache__/
 .pytest_cache/
