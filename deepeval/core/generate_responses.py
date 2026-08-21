@@ -25,7 +25,15 @@ def load_or_generate(suite: str) -> dict[str, str]:
     for case in cases_mod.CASES:
         print(f"[{suite}] Generando respuesta para: {case['id']} ...")
         loaded_skill = case["skill_file"].read_text(encoding="utf-8")
-        responses[case["id"]] = agent_mod.generate_answer(case["message"], loaded_skill)
+        responses[case["id"]] = agent_mod.generate_answer(
+            case["message"], loaded_skill, case_id=case["id"]
+        )
+
+    # Langfuse envía las trazas en batch: fuerza el envío antes de salir
+    # (el import va aquí para que el agente ya haya cargado el .env)
+    from langfuse import get_client
+
+    get_client().flush()
 
     responses_file.parent.mkdir(parents=True, exist_ok=True)
     responses_file.write_text(
