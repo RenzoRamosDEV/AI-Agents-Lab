@@ -7,12 +7,25 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from openai import OpenAI
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROMPT_FILE = Path(__file__).resolve().parent / "prompt.json"
 
 load_dotenv(REPO_ROOT / ".env")
+
+# El SDK de Langfuse espera LANGFUSE_*: mapea nuestras variables del .env
+# ANTES de importarlo (si se importa antes, se inicializa sin credenciales)
+os.environ.setdefault("LANGFUSE_PUBLIC_KEY", os.environ.get("API_KEY_PUBLIC_LANGFUSE", ""))
+os.environ.setdefault("LANGFUSE_SECRET_KEY", os.environ.get("API_KEY_PRIVATE_LANGFUSE", ""))
+os.environ.setdefault("LANGFUSE_BASE_URL", os.environ.get("BASE_URL_LANGFUSE", ""))
+# Trazas del eval marcadas como development: no ensucian dashboards de producción
+os.environ.setdefault("LANGFUSE_TRACING_ENVIRONMENT", "development")
+os.environ.setdefault("OTEL_SERVICE_NAME", "ai-agents-lab-evals")
+
+# Cliente de OpenAI envuelto por Langfuse: misma API, pero cada llamada queda
+# trazada con mensajes, modelo, tokens y coste sin código extra
+from langfuse import get_client, observe, propagate_attributes  # noqa: E402
+from langfuse.openai import OpenAI  # noqa: E402
 
 # Modelo evaluado y sus parámetros de generación
 EVALUATED_MODEL = "gpt-5.6-terra"
@@ -67,14 +80,33 @@ def build_messages(message: str, loaded_skill: str) -> list[dict]:
     return messages
 
 
-# Llama al modelo evaluado y devuelve solo el texto de answer
-def generate_answer(message: str, loaded_skill: str) -> str:
-    client = OpenAI(api_key=os.environ["API_KEY_OPENAI"])
-    completion = client.chat.completions.create(
-        model=EVALUATED_MODEL,
-        messages=build_messages(message, loaded_skill),
-        temperature=TEMPERATURE,
-        max_completion_tokens=MAX_COMPLETION_TOKENS,
-        response_format=RESPONSE_FORMAT,
-    )
-    return json.loads(completion.choices[0].message.content)["answer"]
+# Llama al modelo evaluado y devuelve solo el texto de answer.
+# @observe crea la traza raíz en Langfuse; el input/output se fija a mano
+# para que la traza muestre solo el email y el borrador (no todos los args)
+@observe(name="draft-mail-reply", capture_input=False, capture_output=False)
+def generate_answer(message: str, loaded_skill: str, case_id: str | None = None) -> str:
+    langfuse = get_client()
+    langfuse.update_current_span(input={"message": message})
+
+    metadata = {"evaluated_model": EVALUATED_MODEL, "suite": "mail_agent"}
+    if case_id:
+        metadata["case_id"] = case_id
+
+    with propagate_attributes(
+        trace_name="draft-mail-reply",
+        tags=["eval", "suite:mail_agent"],
+        metadata=metadata,
+    ):
+        client = OpenAI(api_key=os.environ["API_KEY_OPENAI"])
+        completion = client.chat.completions.create(
+            name="generate-reply",
+            model=EVALUATED_MODEL,
+            messages=build_messages(message, loaded_skill),
+            temperature=TEMPERATURE,
+            max_completion_tokens=MAX_COMPLETION_TOKENS,
+            response_format=RESPONSE_FORMAT,
+        )
+
+    answer = json.loads(completion.choices[0].message.content)["answer"]
+    langfuse.update_current_span(output={"answer": answer})
+    return answer
