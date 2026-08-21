@@ -152,6 +152,35 @@ Añade un dict a la lista `CASES` de `cases.py`:
 El siguiente run lo sube al dataset y lo evalúa automáticamente. Si además
 quieres el caso en promptfoo, añádelo también a `promptfooconfig.yaml`.
 
+## Tooling para trabajar con Langfuse desde Claude Code (opcional)
+
+Nada de esto lo necesita el eval para funcionar, pero facilita mucho trabajar
+con él desde un agente (consultar runs, depurar scores, leer docs al día):
+
+- **Skill oficial de Langfuse** — guía al agente para usar la CLI
+  (`langfuse-cli`) y la documentación actualizada. Se instala con:
+
+  ```bash
+  npx skills add langfuse/skills --skill "langfuse"
+  ```
+
+  Queda en `.claude/skills/` y `.agents/skills/`, con el pin de versión en
+  `skills-lock.json`.
+
+- **Servidor MCP de Langfuse** — expone el proyecto como herramientas
+  (datasets, experimentos, scores, prompts...), así el agente puede responder
+  directamente cosas como "¿qué casos fallaron en el último run y por qué?".
+  Auth básica con las claves del proyecto:
+
+  ```bash
+  echo -n "pk-lf-...:sk-lf-..." | base64   # public:secret del proyecto
+  claude mcp add --transport http langfuse https://cloud.langfuse.com/api/public/mcp \
+      --header "Authorization: Basic <token-base64>"
+  ```
+
+  (Si el proyecto está en la región US, la URL es
+  `https://us.cloud.langfuse.com/api/public/mcp`.)
+
 ## Notas
 
 - Los warnings `Propagated attribute ... rubric ... over 200 characters.
