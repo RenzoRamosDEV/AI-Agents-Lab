@@ -189,3 +189,5 @@ con él desde un agente (consultar runs, depurar scores, leer docs al día):
 - Las trazas del eval van marcadas con environment `development`
   (`LANGFUSE_TRACING_ENVIRONMENT` en `agent.py`): no ensucian dashboards de
   producción.
+
+Web de Langfuse: <https://langfuse.com/> · Documentación: <https://langfuse.com/docs>
