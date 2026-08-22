@@ -1,10 +1,32 @@
-# DeepEval local — suites de evaluación de agentes
+# Eval de agentes con DeepEval
 
-Banco de evaluación de los agentes del repo con [DeepEval](https://deepeval.com/): cada agente tiene su **suite** (casos + prompt + invocación del modelo) y todas se ejecutan igual. Mide la calidad de respuesta y detecta **datos inventados** (alucinaciones) con la métrica **Faithfulness**.
+## La herramienta
+
+[DeepEval](https://deepeval.com/) es un framework de evaluación de LLMs en
+Python que funciona sobre pytest: cada eval es un test y las métricas (juez LLM
+incluido) se aplican como asserts. Aquí es el banco de evaluación de los agentes
+del repo: cada agente tiene su **suite** (casos + prompt + invocación del
+modelo) y todas se ejecutan igual. Mide la calidad de respuesta y detecta
+**datos inventados** (alucinaciones) con la métrica **Faithfulness**.
 
 Suites actuales: `mail_agent` (agente de email de `agent/rr-agent-config-mail`).
 
-## Correr los tests
+## Ventajas
+
+|   | Punto | Detalle |
+|---|---|---|
+| ✅ | **Es pytest por debajo** | los evals se ejecutan, marcan y filtran como cualquier test (incluido `xfail` para los canarios) |
+| ✅ | **Faithfulness** | descompone la respuesta en afirmaciones y las contrasta con el contexto real — el detector de alucinaciones |
+| ✅ | **Caché de respuestas** | separa generación de evaluación: se pueden re-ejecutar las métricas sin volver a pagar/esperar al modelo evaluado |
+| ✅ | **Historial local de runs** | cada run guarda sus hyperparameters (modelos, temperatura, umbral…) — autoexplicativo |
+| ⚠️ | **A tener en cuenta** | hay que ejecutarlo desde esta carpeta (shadowing del paquete `deepeval`) y su resumen propio cuenta los canarios como fallos |
+
+## Cómo lanzarlo
+
+| Requisito | Detalle |
+|---|---|
+| venv del repo | `uv sync` en la raíz |
+| API key | `API_KEY_OPENAI` en el `.env` de la raíz |
 
 Desde cualquier sitio del repo:
 
@@ -23,11 +45,11 @@ cd deepeval
 ../.venv/bin/deepeval test run tests/test_mail_agent.py     # 2. corre el eval (si falta la caché, la genera solo)
 ```
 
-Resultado esperado en `mail_agent`: **`5 passed, 3 xfailed`**. Los `xfailed` son los **canarios** (`canario-inventar`, `canario-derivar`, `canario-asunto`): sus rubrics exigen cosas que el agente tiene prohibidas (inventar datos, derivar a otro equipo, meter línea de asunto/metacomentarios), así que fallar = el modelo se comporta bien. Van marcados `xfail(strict=True)`: si algún día uno "pasa", pytest lo marcará como error `XPASS` — problema real, no lo "arregles".
+Resultado esperado en `mail_agent`: **`5 passed, 3 xfailed`**. Los `xfailed` son los **canarios** (ver [Canarios](#canarios)).
 
-Ojo: el resumen propio de DeepEval cuenta los canarios como fallos en su "Pass Rate"; la línea de pytest (`5 passed, 3 xfailed`) es la que manda.
+## Cómo funciona
 
-## Estructura
+### Estructura
 
 ```
 deepeval/
@@ -47,57 +69,68 @@ deepeval/
     └── history/<suite>/run-*.json  + history/index.json (índice de suites y runs)
 ```
 
-## Carpeta `suites/` — una suite por agente
+### Carpeta `suites/` — una suite por agente
 
-Cada suite empaqueta todo lo específico de un agente. Para `mail_agent`:
+Cada suite empaqueta todo lo específico de un agente:
 
-### `prompt.json` — el prompt del agente
+| Fichero | Papel |
+|---|---|
+| `prompt.json` | el prompt real del agente en formato chat: lo que se le envía al modelo en cada caso |
+| `agent.py` | invoca al modelo EVALUADO igual que en producción (modelo, temperatura, max tokens) |
+| `cases.py` | los casos de prueba con sus rubrics + `GLOBAL_RUBRIC_STEPS` (reglas comunes) |
 
-Es lo que se le envía al modelo en cada caso. No basta con mandarle el email del cliente: hay que mandarle lo mismo que recibe el agente en producción — sus instrucciones completas y luego el email — porque si no, no estarías evaluando a tu agente sino a un modelo "a pelo". Son 2 mensajes en formato chat: el **system** (copia del prompt real del agente, el de LangSmith en `agent/rr-agent-config-mail/prompts/`) y el **user** (el email entrante). Los huecos `{{...}}` los rellena `agent.py` en cada caso; `{{loaded_skill}}` es el único añadido respecto al prompt real: el agente de verdad carga la plantilla con la herramienta `load_skill`, pero en el eval no hay herramientas, así que se inyecta directamente el `.md` real del agente.
+**`prompt.json` — el prompt del agente.** No basta con mandarle el email del cliente: hay que mandarle lo mismo que recibe el agente en producción — sus instrucciones completas y luego el email — porque si no, no estarías evaluando a tu agente sino a un modelo "a pelo". Son 2 mensajes en formato chat: el **system** (copia del prompt real del agente, el de LangSmith en `agent/rr-agent-config-mail/prompts/`) y el **user** (el email entrante). Los huecos `{{...}}` los rellena `agent.py` en cada caso; `{{loaded_skill}}` es el único añadido respecto al prompt real: el agente de verdad carga la plantilla con la herramienta `load_skill`, pero en el eval no hay herramientas, así que se inyecta directamente el `.md` real del agente.
 
 ⚠️ Es una **copia manual**: si cambias el prompt del agente en LangSmith o en el `.md`, actualiza también este JSON — si divergen, estarás evaluando un prompt que ya no usas.
 
-### `agent.py` — el agente evaluado
+**`agent.py` — el agente evaluado.** Monta los mensajes a partir de `prompt.json` y llama al modelo evaluado por la API de OpenAI con el mismo `response_format` que usa el agente real (JSON con campo `answer`). Key: `API_KEY_OPENAI` en el `.env` de la raíz.
 
-Monta los mensajes a partir de `prompt.json` y llama al modelo evaluado por la API de OpenAI con el mismo `response_format` que usa el agente real (JSON con campo `answer`). Aquí viven el modelo (`gpt-5.6-terra`), la temperatura y el máximo de tokens. Key: `API_KEY_OPENAI` en el `.env` de la raíz.
+**`cases.py` — los casos de prueba.** Cada caso es un dict con el email entrante, la plantilla que el agente debería usar (fichero real de `agent/.../skills/`), checks de texto y su rubric. La suite `mail_agent` tiene 8 casos:
 
-### `cases.py` — los casos de prueba
+| Caso | Tipo | Escenario |
+|---|---|---|
+| `billing-cobro` | normal | Facturación — duda sobre un cobro |
+| `complaint-baja` | normal | Queja — cliente enfadado que amenaza con darse de baja |
+| `home-coverages` | normal | Coberturas de hogar — pregunta qué cubre la póliza |
+| `generic-cambio-direccion` | normal | Genérico — cliente comunica su nueva dirección postal |
+| `generic-english` | normal | Genérico — email en inglés (debe responder en el mismo idioma) |
+| `canario-inventar` | 🐤 debe fallar | el rubric exige inventar datos (ver [Canarios](#canarios)) |
+| `canario-derivar` | 🐤 debe fallar | el rubric exige derivar a otro equipo (ver [Canarios](#canarios)) |
+| `canario-asunto` | 🐤 debe fallar | el rubric exige línea de asunto y metacomentario (ver [Canarios](#canarios)) |
 
-Cada caso es un dict con el email entrante, la plantilla que el agente debería usar (fichero real de `agent/.../skills/`), checks de texto y su rubric. También define `GLOBAL_RUBRIC_STEPS`: las reglas del prompt que se aplican a todos los casos. Suite `mail_agent` (8 casos): `billing-cobro`, `complaint-baja`, `home-coverages`, `generic-cambio-direccion`, `generic-english` y los tres canarios (`canario-inventar`, `canario-derivar`, `canario-asunto` — ver arriba).
-
-### Añadir una suite nueva (p. ej. `auto_agent`)
-
-1. Crea `suites/auto_agent/` con `agent.py`, `cases.py` y `prompt.json` (usa `mail_agent` de plantilla).
-2. Crea `tests/test_auto_agent.py` (copia el de mail y cambia imports y `SUITE`).
-3. `script/deepeval/run_deepeval.sh auto_agent` — y listo: se genera su caché y su historial de runs.
-
-## Carpeta `core/`
+### Carpeta `core/`
 
 `generate_responses.py` es genérico: recibe el nombre de la suite, genera las respuestas del agente una vez por caso y las cachea en `out/responses/<suite>.json`. Separar generación de evaluación permite re-ejecutar las métricas (el juez) sin volver a pagar/esperar al modelo evaluado. **Borra la caché (o usa `--fresh`) después de cambiar el prompt o las plantillas del agente**, o estarás evaluando respuestas viejas.
 
-## Carpeta `tests/`
+### Carpeta `tests/`
 
 Un `test_<suite>.py` por suite (`deepeval test run` es pytest por debajo). Cada test aplica cuatro capas, de la más barata a la más cara:
 
-1. **Checks de texto** (sin LLM, gratis y exactos): sin `\n` literal, términos obligatorios (`contains_any` / `contains_all`).
-2. **Faithfulness**: descompone la respuesta en afirmaciones y contrasta cada una contra el contexto real (email + plantilla). Es el detector de alucinaciones.
-3. **GEval `reglas-globales`**: el juez valida las reglas del prompt, con la plantilla como contexto.
-4. **GEval `rubric-<caso>`**: el juez valida el rubric específico del escenario.
+| # | Capa | Tipo | Qué valida |
+|---|---|---|---|
+| 1 | Checks de texto | determinista (gratis y exacto) | sin `\n` literal, términos obligatorios (`contains_any` / `contains_all`) |
+| 2 | Faithfulness | juez LLM | descompone la respuesta en afirmaciones y las contrasta con el contexto real (email + plantilla) — detector de alucinaciones |
+| 3 | GEval `reglas-globales` | juez LLM | las reglas del prompt, con la plantilla como contexto |
+| 4 | GEval `rubric-<caso>` | juez LLM | el rubric específico del escenario |
 
 Umbral de todas las métricas: `0.5`. Además, el test registra los **hyperparameters** del run (suite, modelo evaluado, juez, temperatura, max tokens, umbral y la plantilla del prompt) — así cada entrada del historial es autoexplicativa.
 
-## `conftest.py`
+### `conftest.py`
 
 Carga el `.env` de la raíz y expone `API_KEY_OPENAI` como `OPENAI_API_KEY`, que es la variable que DeepEval espera para el modelo juez. Al estar en la raíz de la carpeta, pytest lo carga siempre y de paso hace importables `core/` y `suites/` desde los tests.
 
-## Los dos modelos: evaluado y juez
+### Los dos modelos: evaluado y juez
 
-- **Evaluado** (en `suites/<suite>/agent.py`): hace de agente — recibe la entrada y redacta la respuesta. Es a quien se examina.
-- **Juez** (`gpt-4.1-mini`, en `tests/test_<suite>.py`): puntúa las métricas leyendo la respuesta del evaluado. Los checks de texto no usan ningún modelo.
+| Rol | Modelo | Dónde se configura | Qué hace |
+|---|---|---|---|
+| **Evaluado** | `gpt-5.6-terra` | `suites/<suite>/agent.py` | hace de agente: recibe la entrada y redacta la respuesta. Es a quien se examina |
+| **Juez** | `gpt-4.1-mini` | `tests/test_<suite>.py` | puntúa las métricas leyendo la respuesta del evaluado (los checks de texto no usan ningún modelo) |
 
 Se usa un modelo pequeño y distinto como juez a propósito: calificar contra criterios es más fácil que redactar (mini basta), es mucho más barato (~0,02 USD por run), y un modelo no debe calificarse a sí mismo. Al cambiar el modelo evaluado, el juez se queda igual: mismo corrector para poder comparar.
 
-## Cómo se hace un caso de test
+## Ejemplos
+
+### Añadir un caso de test
 
 Añade un dict a la lista `CASES` de `suites/<suite>/cases.py`:
 
@@ -130,4 +163,30 @@ Añade un dict a la lista `CASES` de `suites/<suite>/cases.py`:
 
 Eso es todo: el test, Faithfulness y las reglas globales se aplican automáticamente. Después ejecuta con `--fresh` para generar la respuesta del caso nuevo.
 
-Catálogo completo de métricas de DeepEval (relevancia, toxicidad, RAG, etc.): https://deepeval.com/docs/metrics-introduction
+### Añadir una suite nueva (p. ej. `auto_agent`)
+
+1. Crea `suites/auto_agent/` con `agent.py`, `cases.py` y `prompt.json` (usa `mail_agent` de plantilla).
+2. Crea `tests/test_auto_agent.py` (copia el de mail y cambia imports y `SUITE`).
+3. `script/deepeval/run_deepeval.sh auto_agent` — y listo: se genera su caché y su historial de runs.
+
+## Canarios
+
+Los tres `xfailed` del resultado esperado son los **canarios**: sus rubrics exigen cosas que el agente tiene prohibidas, así que fallar = el modelo se comporta bien.
+
+| Caso | Qué exige su rubric (prohibido por el prompt) |
+|---|---|
+| `canario-inventar` | inventar datos |
+| `canario-derivar` | derivar a otro equipo |
+| `canario-asunto` | meter línea de asunto / metacomentarios |
+
+Van marcados `xfail(strict=True)`: si algún día uno "pasa", pytest lo marcará como error `XPASS` — problema real, no lo "arregles".
+
+Ojo: el resumen propio de DeepEval cuenta los canarios como fallos en su "Pass Rate"; la línea de pytest (`5 passed, 3 xfailed`) es la que manda.
+
+## Notas y referencias
+
+| Recurso | Dónde |
+|---|---|
+| Catálogo completo de métricas (relevancia, toxicidad, RAG, etc.) | <https://deepeval.com/docs/metrics-introduction> |
+| Web de DeepEval | <https://deepeval.com/> |
+| Documentación | <https://deepeval.com/docs> |
