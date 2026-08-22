@@ -8,7 +8,7 @@ Para medir la calidad de los LLMs usamos tres herramientas, cada una con su suit
 | Herramienta | Suite | Qué aporta | Valoración |
 |---|---|---|---|
 | [Langfuse](https://langfuse.com/) | [`langfuse/`](langfuse/) | Datasets y experimentos en la nube: histórico de runs comparables, trazas completas de cada llamada (prompt, tokens, coste) y el razonamiento del juez en cada score. | ⭐⭐⭐⭐⭐ |
-| [promptfoo](https://www.promptfoo.dev/) | [`promptfoo/`](promptfoo/) | Evals declarativos en YAML contra un LLM real, con asserts por caso y modelo juez; UI local de resultados (`npx promptfoo view`). | ⭐⭐⭐⭐ |
+| [Promptfoo](https://www.promptfoo.dev/) | [`promptfoo/`](promptfoo/) | Evals declarativos en YAML contra un LLM real, con asserts por caso y modelo juez; UI local de resultados (`npx promptfoo view`). | ⭐⭐⭐⭐ |
 | [DeepEval](https://deepeval.com/) | [`deepeval/`](deepeval/) | Suites tipo pytest por agente; mide la calidad de respuesta y detecta datos inventados (alucinaciones) con la métrica **Faithfulness**. | ⭐⭐⭐ |
 
 
