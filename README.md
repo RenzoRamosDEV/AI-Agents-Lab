@@ -11,7 +11,6 @@ Para medir la calidad de los LLMs usamos tres herramientas, cada una con su suit
 | [promptfoo](https://www.promptfoo.dev/) | [`promptfoo/`](promptfoo/) | Evals declarativos en YAML contra un LLM real, con asserts por caso y modelo juez; UI local de resultados (`npx promptfoo view`). | ⭐⭐⭐⭐ |
 | [DeepEval](https://deepeval.com/) | [`deepeval/`](deepeval/) | Suites tipo pytest por agente; mide la calidad de respuesta y detecta datos inventados (alucinaciones) con la métrica **Faithfulness**. | ⭐⭐⭐ |
 
-Valoración subjetiva (1–5 ⭐) según la experiencia de uso en este repo, ordenada de mayor a menor: **Langfuse** es el más completo — histórico comparable, trazas con coste y razonamiento del juez — a cambio de depender de un servicio externo; **promptfoo** es el más rápido de montar y su UI local es muy cómoda, aunque exige Node ≥ 22; a **DeepEval** le penalizan las fricciones de ejecución (hay que correrlo desde su carpeta por el shadowing del paquete y su resumen propio cuenta los canarios como fallos).
 
 El README de cada suite explica cómo lanzarla y qué resultado esperar.
 
